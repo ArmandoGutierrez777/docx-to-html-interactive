@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prueba de Web Component DOCX</title>
+    <script type="module" src="../docx-to-html-interactive.js"></script>
+    <style>
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        width: 400px;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .step {
+        display: none;
+      }
+      .step.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Convertir archivo DOCX a HTML Rellenable</h1>
+
+    <button id="openModalBtn">Cargar archivos</button>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+
+        <div id="step1" class="step active">
+          <h2>Paso 1: Cargar archivo DOCX</h2>
+          <input type="file" id="docxFileInput" accept=".docx" />
+          <button id="nextToStep2Btn">Siguiente</button>
+        </div>
+
+
+        <div id="step2" class="step">
+          <h2>Paso 2: Cargar archivo JSON (Opcional)</h2>
+          <input type="file" id="jsonFileInput" accept=".json" />
+          <button id="renderBtn" disabled>Renderizar DOCX Con JSON</button>
+          <button id="skipJsonBtn">Renderizar DOCX Omitir JSON</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Web Component -->
+    <docx-to-html-interactive id="docxComponent"></docx-to-html-interactive>
+
+    <button id="downloadJsonBtn">Descargar JSON</button>
+
+    <script>
+      const openModalBtn = document.getElementById('openModalBtn');
+      const modal = document.getElementById('modal');
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const nextToStep2Btn = document.getElementById('nextToStep2Btn');
+      const renderBtn = document.getElementById('renderBtn');
+      const skipJsonBtn = document.getElementById('skipJsonBtn');
+      const docxFileInput = document.getElementById('docxFileInput');
+      const jsonFileInput = document.getElementById('jsonFileInput');
+      const docxComponent = document.getElementById('docxComponent');
+      const downloadJsonBtn = document.getElementById('downloadJsonBtn');
+
+      let docxFile = null;
+      let jsonData = null;
+
+      openModalBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+        step1.classList.add('active');
+        step2.classList.remove('active');
+      });
+
+      nextToStep2Btn.addEventListener('click', () => {
+        if (docxFileInput.files.length > 0) {
+          docxFile = docxFileInput.files[0];
+          step1.classList.remove('active');
+          step2.classList.add('active');
+        } else {
+          alert('Por favor, selecciona un archivo DOCX.');
+        }
+      });
+
+      jsonFileInput.addEventListener('change', () => {
+        if (jsonFileInput.files.length > 0) {
+          renderBtn.disabled = false;
+        } else {
+          renderBtn.disabled = true;
+        }
+      });
+
+      function renderDocxWithJson() {
+        docxComponent.docxFile = docxFile;
+        if (jsonData) {
+          docxComponent.jsonData = jsonData;
+        }
+        modal.classList.remove('active');
+      }
+
+      renderBtn.addEventListener('click', () => {
+        if (jsonFileInput.files.length > 0) {
+          const file = jsonFileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            jsonData = JSON.parse(e.target.result);
+            renderDocxWithJson();
+          };
+          reader.readAsText(file);
+        } else {
+          renderDocxWithJson();
+        }
+      });
+
+      skipJsonBtn.addEventListener('click', () => {
+        renderDocxWithJson();
+      });
+
+      downloadJsonBtn.addEventListener('click', async () => {
+        const formData = await docxComponent.getData();
+        const jsonString = JSON.stringify(formData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'formData.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+
+    </script>
+  </body>
+</html>

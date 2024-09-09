@@ -1,0 +1,16 @@
+{
+  "name": "@ArmandoGutierrez777/docx-to-html-interactive",
+  "version": "1.0.0",
+  "description": "Un Web Component para renderizar DOCX a HTML Interactivos.",
+  "main": "docx-to-html-interactive.js",
+  "dependencies": {
+    "docx-preview": "^0.3.2"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
+    "scope": "@ArmandoGutierrez777"
+  },
+  "devDependencies": {
+    "vite": "^5.4.3"
+  }
+}
